@@ -33,6 +33,20 @@ def get_min_max_by_time(hour=None, minute=None):
     max_step = get_int_value_default(config, 'MAX_STEP', 25000)
     return int(time_rate * min_step), int(time_rate * max_step)
 
+def read_least_step():
+    file_path = r"least_step"
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding="utf-8") as f:
+            return int(f.read())
+    else:
+        return 0
+
+def save_least_step(step):
+    file_path = r"least_step"
+    with open(file_path, 'w', encoding="utf-8") as f:
+        f.write(str(step))
+        f.flush()
+        f.close()
 
 # 虚拟ip地址
 def fake_ip():
@@ -184,6 +198,10 @@ class MiMotionRunner:
             return "登陆失败！", False
 
         step = str(random.randint(min_step, max_step))
+        least_step = read_least_step()
+        if step < least_step:
+            step = least_step + 10
+        save_least_step(step)
         self.log_str += f"已设置为随机步数范围({min_step}~{max_step}) 随机值:{step}\n"
         ok, msg = zeppHelper.post_fake_brand_data(step, app_token, self.user_id)
         return f"修改步数（{step}）[" + msg + "]", ok
